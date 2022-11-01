@@ -1,0 +1,4 @@
+outs:
+- md5: 00ad43bd9eee722cf1d170502ca2988d
+  size: 202136
+  path: all_details.joblib

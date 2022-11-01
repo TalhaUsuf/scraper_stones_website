@@ -30,7 +30,7 @@ def get_this_company_info(url_):
         for key in keys:
             contents = [j.strip() for j in k.text.split("\n") if (not j.strip() == '' and  j.strip().startswith(f"{key}"))]
             # print(contents)
-            contents_filter.setdefault(key, []).append(contents[0])
+            contents_filter.setdefault(key, []).append(contents)
     this_company_details[url_] = contents_filter
 
     return this_company_details

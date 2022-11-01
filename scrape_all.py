@@ -1,4 +1,6 @@
 ##
+import joblib
+import yaml
 from bs4 import BeautifulSoup
 from rich.console import Console
 from pathlib import Path
@@ -7,7 +9,7 @@ import requests
 import pandas as pd
 from tqdm import tqdm
 from pqdm.threads import pqdm
-from joblib import dump
+from joblib import dump, load
 from page_scrapers import get_all_companies_urls, get_this_company_info
 ##
 
@@ -45,15 +47,16 @@ def main():
     ##
 
 #     # 🔴 open company page and get information
-#     args = this_country_companies
-#     result = pqdm(args, get_this_company_info, n_jobs=8, colour='green')
-#
-# #     dump result to json
-#     with open('data.json', 'w') as f:
-#         json.dump(result, f, indent=4)
-#
+    args = this_country_companies
+    result = pqdm(args, get_this_company_info, n_jobs=30, colour='green')
+
+    dump(result, "all_details.joblib")
+#     dump result to json
+    with open('data.yaml', 'w') as f:
+        # f.write(str(det))
+        yaml.dump(result, f, default_flow_style=False)
+
 
 
 if __name__ == "__main__":
     main()
-
