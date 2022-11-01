@@ -1,0 +1,6 @@
+beautifulsoup4==4.11.1
+pandas==1.4.3
+pqdm==0.2.0
+requests==2.25.1
+rich==12.6.0
+tqdm==4.64.0
