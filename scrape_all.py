@@ -7,65 +7,53 @@ import requests
 import pandas as pd
 from tqdm import tqdm
 from pqdm.threads import pqdm
-
-##
-# 🔴 go to the page which has all the URLs of countries
-response = requests.get("https://www.stoneadd.com/Stone-Suppliers.html")
-# make a soup from response
-soup = BeautifulSoup(response.content, 'html.parser')
-
-data = {}
-_URLS = []
-for k in tqdm(soup.find_all("div", class_="xlei"), colour='green'):
-
-    for j in tqdm(k.find_all("li"), colour='red', leave=False):
-        # Console().print(j.a.get('href'))
-
-        data.setdefault("Country", []).append(f"{j.text}")
-        data.setdefault("url", []).append(f"{j.a.get('href')}")
-        _URLS.append(f"{j.a.get('href')}")
-
-##
-# 🔵 Iterate over each country urls, open main page and get all the urls of companies
-this_country_companies = []
-# for k in tqdm(range(len(_URLS)), colour='red'):
-response = requests.get(_URLS[0])
-Console().print(f"🛠️\tprocessing {_URLS[0]}")
-soup = BeautifulSoup(response.content, 'html.parser')
-for j in soup.find_all("div", class_="xxb"):
-    for k in j.find_all('div', class_='wz'):
-        for n in k.find_all('div', class_='gs'):
-            this_country_companies.append(n.a.get('href'))
-
-
-Console().print(this_country_companies)
-
+from joblib import dump
+from page_scrapers import get_all_companies_urls, get_this_company_info
 ##
 
-# 🔴 open company page and get information
-this_company_details = {}
-for url_ in tqdm(this_country_companies, colour='green', desc="URL"):
-    page = requests.get(url_)
 
-    soup = BeautifulSoup(page.content, 'html.parser')
+def main():
 
 
+    # 🔴 go to the page which has all the URLs of countries
+    response = requests.get("https://www.stoneadd.com/Stone-Suppliers.html")
+    # make a soup from response
+    soup = BeautifulSoup(response.content, 'html.parser')
 
-    keys = ['Email', 'Telephone', 'WhatsAPP', 'Website', 'Contact Person', 'WeChat', 'Fax']
-    # find <div class="jj"> in soup
-    for k in soup.find_all('div', class_='jj'):
-        contents_filter = {}
-        for key in keys:
-            contents = [j.strip() for j in k.text.split("\n") if (not j.strip() == '' and  j.strip().startswith(f"{key}"))]
-            print(contents)
-            contents_filter.setdefault(key, []).append(contents)
-    this_company_details[url_] = contents_filter
+    data = {}
+    _URLS = []
+    for k in tqdm(soup.find_all("div", class_="xlei"), colour='green'):
+
+        for j in tqdm(k.find_all("li"), colour='red', leave=False):
+            # Console().print(j.a.get('href'))
+
+            data.setdefault("Country", []).append(f"{j.text}")
+            data.setdefault("url", []).append(f"{j.a.get('href')}")
+            _URLS.append(f"{j.a.get('href')}")
+    Console().print(f"Total Countries: {len(data['Country'])}")
+    ##
+    # 🔵 Iterate over each country urls, open that page and get all the urls of listed companies
 
 
-Console().print_json(this_company_details, indent=4)
+    args = _URLS
+    this_country_companies = pqdm(args, get_all_companies_urls, n_jobs=12, colour='magenta')
+
+    # List[List[str]] ---> List[str]
+    flatten = lambda x : [j for k in x for j in k]
+    this_country_companies = flatten(this_country_companies)
+    dump(this_country_companies, "this_country_companies.joblib")
+    ##
+
+#     # 🔴 open company page and get information
+#     args = this_country_companies
+#     result = pqdm(args, get_this_company_info, n_jobs=8, colour='green')
+#
+# #     dump result to json
+#     with open('data.json', 'w') as f:
+#         json.dump(result, f, indent=4)
+#
 
 
-# pd.DataFrame.from_dict(data).to_csv("records.csv", index=False)
-
-
+if __name__ == "__main__":
+    main()
 

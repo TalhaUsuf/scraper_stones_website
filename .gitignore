@@ -1,1 +1,5 @@
 /.idea/
+/all_urls.json
+/data.json
+/records.csv
+/this_country_companies.joblib
